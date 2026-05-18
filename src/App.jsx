@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import spaBg from "./assets/spa6.png";
+import patment from "./assets/patment3.png";
 import {
   QrCode,
   Wifi,
@@ -80,7 +81,7 @@ export default function App() {
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [selectedType, setSelectedType] = useState("");
 
-  const [guestCount, setGuestCount] = useState(0);
+  const [guestCount, setGuestCount] = useState(1);
   const [currentGuestIndex, setCurrentGuestIndex] = useState(0);
   const [selectedCard, setSelectedCard] = useState("saved");
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -453,51 +454,58 @@ const handleBack = () => {
           </div>
         )}
 
-        {/* SELECT GUESTS */}
-        {step === "select_guests" && (
-          <div className="min-h-[65vh] p-10 flex flex-col">
-            <div>
-              <h2 className="text-4xl font-black">
-                Select Guests
-              </h2>
+{/* SELECT GUESTS */}
+{step === "select_guests" && (
+  <div className="min-h-[65vh] p-10 flex flex-col">
+    <div>
+      <h2 className="text-4xl font-black">
+        Select Guests
+      </h2>
 
-              <p className="text-slate-400 mt-3 font-bold">
-                How many guests are checking in?
-              </p>
-            </div>
+      <p className="text-slate-400 mt-3 font-bold">
+        How many guests are checking in?
+      </p>
+    </div>
 
-            <div className="flex-1 flex items-center justify-center">
-              <div className="flex items-center gap-8">
-                <button
-                  onClick={() =>
-                    setGuestCount(Math.max(1, guestCount - 1))
-                  }
-                  className="w-20 h-20 rounded-full bg-slate-100 text-4xl font-black"
-                >
-                  -
-                </button>
+    <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-6">
+        <div className="flex items-center gap-8">
+          <button
+            onClick={() =>
+              setGuestCount(Math.max(1, guestCount - 1))
+            }
+            className="w-20 h-20 rounded-full bg-slate-100 text-4xl font-black"
+          >
+            -
+          </button>
 
-                <div className="text-8xl font-black text-slate-900 w-32 text-center">
-                  {guestCount}
-                </div>
-
-                <button
-                  onClick={() => setGuestCount(guestCount + 1)}
-                  className="w-20 h-20 rounded-full bg-blue-600 text-white text-4xl font-black"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setStep("payment")}
-              className="w-full bg-slate-900 text-white py-7 rounded-[2rem] text-2xl font-black"
-            >
-              Continue
-            </button>
+          <div className="text-8xl font-black text-slate-900 w-32 text-center">
+            {guestCount}
           </div>
-        )}
+
+          <button
+            onClick={() => setGuestCount(guestCount + 1)}
+            className="w-20 h-20 rounded-full bg-blue-600 text-white text-4xl font-black"
+          >
+            +
+          </button>
+        </div>
+
+        {/* PRICE TEXT */}
+        <p className="text-2xl font-bold text-slate-500">
+          Total: ${guestCount * 65}
+        </p>
+      </div>
+    </div>
+
+    <button
+      onClick={() => setStep("payment")}
+      className="w-full bg-slate-900 text-white py-7 rounded-[2rem] text-2xl font-black"
+    >
+      Continue
+    </button>
+  </div>
+)}
 
         {/* PAYMENT
         {step === "payment" && (
@@ -540,100 +548,149 @@ const handleBack = () => {
           </div>
         )} */}
 
-        {/* PAYMENT TERMINAL */}
-        {step === "payment" && (
-          <div className="min-h-[65vh] flex flex-col justify-center items-center p-10 text-center bg-white">
-            <div className="w-44 h-44 rounded-[3rem] bg-blue-50 flex items-center justify-center shadow-inner animate-pulse">
-              <CreditCard
-                size={90}
-                className="text-blue-600"
-              />
-            </div>
+{/* PAYMENT TERMINAL */}
+{step === "payment" && (
+  <div className="min-h-[65vh] flex flex-col justify-center items-center p-10 text-center bg-white">
 
-            <h2 className="text-5xl font-black mt-14 leading-tight">
-              Please Tap,
-              <br />
-              Insert or Swipe
-              <br />
-              Your Card
-            </h2>
+{/* PRICE INFO */}
+<div className="w-full max-w-xl mb-12">
+  <div className="bg-blue-50 border border-blue-100 rounded-[2.5rem] p-8">
+    
+    <div className="flex items-center justify-between">
+      
+      {/* LEFT INFO */}
+      <div className="text-left">
+        
+        <p className="text-blue-600 font-black text-2xl">
+          $65 / Guest
+        </p>
 
-            <p className="text-slate-400 text-xl font-bold mt-8 leading-relaxed max-w-md">
-              Secure payment terminal is ready.
-              <br />
-              Follow the instructions on the reader.
-            </p>
+        <p className="text-slate-500 font-black text-2xl mt-3">
+          4hrs Only
+        </p>
 
-            <div className="mt-16 flex items-center gap-3 text-blue-600 font-black uppercase tracking-[0.25em] text-sm animate-pulse">
-              <div className="w-2 h-2 rounded-full bg-blue-600" />
-              Waiting for Payment
-            </div>
+        <p className="text-slate-400 font-black text-xl mt-3">
+          {guestCount} Guest{guestCount > 1 ? "s" : ""}
+        </p>
 
-            <button
-              onClick={() => setStep("payment_approved")}
-              className="mt-20 text-blue-600 font-black text-lg"
-            >
-              SIMULATE PAYMENT SUCCESS
-            </button>
-          </div>
-        )}
+      </div>
 
-        {/* PAYMENT APPROVED */}
-        {step === "payment_approved" && (
-          <div
-            onClick={() => setStep("guest_registration")}
-            className="min-h-[65vh] flex flex-col justify-center items-center p-10 text-center bg-white cursor-pointer"
-          >
-            <div className="w-28 h-28 rounded-full bg-green-100 flex items-center justify-center shadow-inner">
-              <CheckCircle2
-                size={58}
-                className="text-green-500"
-              />
-            </div>
+      {/* TOTAL */}
+      <div className="text-right">
+        
+        <p className="text-slate-400 text-base font-black uppercase tracking-[0.2em]">
+          Total
+        </p>
 
-            <h2 className="text-5xl font-black mt-12 leading-tight text-slate-900">
-              Payment
-              <br />
-              Approved
-            </h2>
+        <h3 className="text-5xl font-black text-slate-900 mt-2">
+          ${guestCount * 65}
+        </h3>
 
-            <div className="mt-10 bg-slate-50 rounded-[2.5rem] p-10 w-full max-w-lg">
-              <p className="text-slate-400 uppercase tracking-[0.3em] text-xs font-black">
-                TRANSACTION SUMMARY
-              </p>
+      </div>
 
-              <div className="mt-8 flex justify-between items-center">
-                <span className="text-xl font-bold text-slate-500">
-                  Admission
-                </span>
+    </div>
+  </div>
+</div>
 
-                <span className="text-2xl font-black text-blue-600">
-                  {guestCount} Day Pass
-                </span>
-              </div>
+    {/* PAYMENT IMAGE */}
+    <img
+      src={patment}
+      alt="Payment Terminal"
+      className="w-full object-contain"
+    />
 
-              <div className="mt-5 flex justify-between items-center">
-                <span className="text-xl font-bold text-slate-500">
-                  Status
-                </span>
+    {/* <div className="mt-16 flex items-center gap-3 text-slate-400 font-black uppercase tracking-[0.25em] text-sm animate-pulse">
+      <div className="w-2 h-2 rounded-full bg-slate-400" />
+      Waiting for Payment
+    </div> */}
 
-                <span className="text-2xl font-black text-green-500">
-                  Paid
-                </span>
-              </div>
-            </div>
+    <button
+      onClick={() => setStep("payment_approved")}
+      className="mt-20 text-blue-600 font-black text-lg"
+    >
+      SIMULATE PAYMENT SUCCESS
+    </button>
+  </div>
+)}
 
-            <p className="mt-12 text-2xl font-black leading-relaxed text-slate-900 max-w-xl">
-              {guestCount} Day Pass Admission Paid.
-              <br />
-              Now Register Each Guest.
-            </p>
+{/* PAYMENT APPROVED */}
+{step === "payment_approved" && (
+  <div className="min-h-[65vh] flex flex-col justify-center items-center p-10 text-center bg-white">
+    
+    <div className="w-18 h-18 rounded-full bg-green-100 flex items-center justify-center shadow-inner">
+      <CheckCircle2
+        size={38}
+        className="text-green-500"
+      />
+    </div>
 
-            <p className="mt-12 uppercase tracking-[0.4em] text-xs text-slate-400 font-black animate-pulse">
-              TAP ANYWHERE TO CONTINUE
-            </p>
-          </div>
-        )}
+    <h2 className="text-5xl font-black mt-7 leading-tight text-slate-900">
+      Payment
+      <br />
+      Approved
+    </h2>
+
+    <div className="mt-10 bg-slate-50 rounded-[2.5rem] p-10 w-full max-w-lg">
+      <p className="text-slate-400 uppercase tracking-[0.3em] text-xs font-black">
+        TRANSACTION SUMMARY
+      </p>
+
+      <div className="mt-8 flex justify-between items-center">
+        <span className="text-xl font-bold text-slate-500">
+          Admission
+        </span>
+
+        <span className="text-2xl font-black text-green-500">
+          {guestCount} Day Pass
+        </span>
+      </div>
+
+      {/* <div className="mt-5 flex justify-between items-center">
+        <span className="text-xl font-bold text-slate-500">
+          Status
+        </span>
+
+        <span className="text-2xl font-black text-green-500">
+          Paid
+        </span>
+      </div> */}
+
+      <div className="mt-5 flex justify-between items-center">
+        <span className="text-xl font-bold text-slate-500">
+          Total
+        </span>
+
+        <span className="text-2xl font-black text-slate-900">
+          ${guestCount * 65}
+        </span>
+      </div>
+    </div>
+
+    {/* <p className="mt-12 text-2xl font-black leading-relaxed text-slate-900 max-w-xl">
+      {guestCount} Day Pass Admission Paid.
+      <br />
+      Now Register Each Guest.
+    </p> */}
+
+    {/* ACTION BUTTONS */}
+    <div className="mt-14 w-full max-w-lg flex flex-col gap-4">
+      
+      <button
+        className="w-full py-6 rounded-[2rem] border-2 border-slate-200 text-slate-700 text-xl font-black bg-white"
+      >
+        Print Receipt
+      </button>
+
+      <button
+        onClick={() => setStep("guest_registration")}
+        className="w-full py-6 rounded-[2rem] bg-blue-600 text-white text-xl font-black"
+      >
+        Check In
+      </button>
+
+    </div>
+  </div>
+)}
 
         {/* CHOOSE CARD */}
         {step === "choose_card" && (
@@ -748,7 +805,7 @@ const handleBack = () => {
           Access Type
         </span>
 
-        <span className="text-2xl font-black text-blue-600">
+        <span className="text-2xl font-black text-green-500">
           {selectedType}
         </span>
       </div>
