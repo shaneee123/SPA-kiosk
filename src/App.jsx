@@ -99,6 +99,17 @@ export default function App() {
   const prevStepRef = useRef(step);
   const [isMembershipFlow, setIsMembershipFlow] = useState(false);
 
+  const [faceConsent, setFaceConsent] = useState(false);
+  const [showVerificationInput, setShowVerificationInput] = useState(false);
+
+  const [paymentMode, setPaymentMode] = useState("daypass"); 
+  const [flowType, setFlowType] = useState(null);
+  /*
+  daypass
+  membership
+  voucher
+  */
+
   const bg = spaBg;
 
 
@@ -124,24 +135,29 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-  if (step === "face_capture") {
+useEffect(() => {
+
+  if (step === "face_capture" && faceConsent) {
+
     navigator.mediaDevices.getUserMedia({ video: true }).then((s) => {
+
       setStream(s);
 
       if (videoRef.current) {
         videoRef.current.srcObject = s;
       }
+
     });
   }
 
-  // cleanup (step 바뀔 때 카메라 종료)
+  // cleanup
   return () => {
     if (stream) {
       stream.getTracks().forEach((t) => t.stop());
     }
   };
-}, [step]);
+
+}, [step, faceConsent]);
 
   const t = translations[lang];
 
@@ -230,7 +246,7 @@ const handleBack = () => {
 
   setGuests([]);
 
-  setGuestCount(0);
+  setGuestCount(1);
   setCurrentGuestIndex(0);
 
   setFirstName("");
@@ -418,15 +434,18 @@ const handleBack = () => {
                     setSelectedType(item.label);
 
                     if (item.id === "day") {
+                      setFlowType("daypass");
                       setIsMembershipFlow(false);
                       setStep("select_guests");
                     }
 
                     if (item.id === "mem") {
+                      setFlowType("membership");
                       setStep("scan_qr");
                     }
 
                     if (item.id === "vou") {
+                      setFlowType("voucher");
                       setIsMembershipFlow(false);
                       setStep("scan_qr");
                     }
@@ -499,7 +518,10 @@ const handleBack = () => {
     </div>
 
     <button
-      onClick={() => setStep("payment")}
+      onClick={() => {
+        setPaymentMode("daypass");
+        setStep("payment");
+      }}
       className="w-full bg-slate-900 text-white py-7 rounded-[2rem] text-2xl font-black"
     >
       Continue
@@ -548,73 +570,114 @@ const handleBack = () => {
           </div>
         )} */}
 
-{/* PAYMENT TERMINAL */}
-{step === "payment" && (
+{/* PAYMENT */}
+{step === "payment" && paymentMode === "daypass" && (
   <div className="min-h-[65vh] flex flex-col justify-center items-center p-10 text-center bg-white">
 
-{/* PRICE INFO */}
-<div className="w-full max-w-xl mb-12">
-  <div className="bg-blue-50 border border-blue-100 rounded-[2.5rem] p-8">
-    
-    <div className="flex items-center justify-between">
-      
-      {/* LEFT INFO */}
-      <div className="text-left">
-        
-        <p className="text-blue-600 font-black text-2xl">
-          $65 / Guest
-        </p>
+    {/* PRICE INFO */}
+    <div className="w-full max-w-xl mb-12">
+      <div className="bg-blue-50 border border-blue-100 rounded-[2.5rem] p-8">
 
-        <p className="text-slate-500 font-black text-2xl mt-3">
-          4hrs Only
-        </p>
+        <div className="flex items-center justify-between">
 
-        <p className="text-slate-400 font-black text-xl mt-3">
-          {guestCount} Guest{guestCount > 1 ? "s" : ""}
-        </p>
+          {/* LEFT */}
+          <div className="text-left">
+
+            <p className="text-blue-600 font-black text-2xl">
+              $65 / Guest
+            </p>
+
+            <p className="text-slate-500 font-black text-2xl mt-3">
+              4hrs Only
+            </p>
+
+            <p className="text-slate-400 font-black text-xl mt-3">
+              {guestCount} Guest{guestCount > 1 ? "s" : ""}
+            </p>
+
+          </div>
+
+          {/* TOTAL */}
+          <div className="text-right">
+
+            <p className="text-slate-400 text-base font-black uppercase tracking-[0.2em]">
+              Total
+            </p>
+
+            <h3 className="text-5xl font-black text-slate-900 mt-2">
+              ${guestCount * 65}
+            </h3>
+
+          </div>
+
+        </div>
 
       </div>
-
-      {/* TOTAL */}
-      <div className="text-right">
-        
-        <p className="text-slate-400 text-base font-black uppercase tracking-[0.2em]">
-          Total
-        </p>
-
-        <h3 className="text-5xl font-black text-slate-900 mt-2">
-          ${guestCount * 65}
-        </h3>
-
-      </div>
-
     </div>
-  </div>
-</div>
 
     {/* PAYMENT IMAGE */}
     <img
       src={patment}
       alt="Payment Terminal"
-      className="w-full object-contain"
+      className="w-xl object-contain"
     />
 
-    {/* <div className="mt-16 flex items-center gap-3 text-slate-400 font-black uppercase tracking-[0.25em] text-sm animate-pulse">
-      <div className="w-2 h-2 rounded-full bg-slate-400" />
-      Waiting for Payment
-    </div> */}
-
     <button
-      onClick={() => setStep("payment_approved")}
+      onClick={() => {
+        setPaymentMode("daypass");
+        setStep("payment_approved");
+      }}
+        
       className="mt-20 text-blue-600 font-black text-lg"
     >
       SIMULATE PAYMENT SUCCESS
     </button>
+
   </div>
 )}
 
-{/* PAYMENT APPROVED */}
-{step === "payment_approved" && (
+{step === "payment" && paymentMode === "card_register" && (
+  <div className="min-h-[65vh] flex flex-col justify-center items-center p-10 text-center bg-white">
+
+    {/* TITLE */}
+    <h2 className="text-4xl font-black">
+      Add Payment Method
+    </h2>
+
+    {/* PAYMENT IMAGE */}
+    <img
+      src={patment}
+      alt="Payment Terminal"
+      className="w-xl object-contain mt-10"
+    />
+
+    {/* INFO */}
+    <div className="mt-10 bg-blue-50 border border-blue-100 rounded-[2rem] p-6 max-w-xl w-full">
+      <p className="text-blue-600 font-black uppercase tracking-[0.2em] text-xs">
+        CARD REGISTRATION
+      </p>
+
+      <p className="text-slate-600 mt-3 font-bold">
+        This card will be saved for incidentals and future authorized charges.
+      </p>
+    </div>
+
+    {/* BUTTON */}
+    <button
+      onClick={() => {
+        setPaymentMode("card_register");
+        setStep("payment_approved");
+      }}
+      className="mt-14 bg-blue-600 text-white py-6 px-10 rounded-2xl font-black text-xl"
+    >
+      Save Card & Continue
+    </button>
+
+  </div>
+)}
+
+{/* PAYMENT APPROVED - DAY PASS */}
+{step === "payment_approved" && paymentMode === "daypass" && (
   <div className="min-h-[65vh] flex flex-col justify-center items-center p-10 text-center bg-white">
     
     <div className="w-18 h-18 rounded-full bg-green-100 flex items-center justify-center shadow-inner">
@@ -689,6 +752,101 @@ const handleBack = () => {
       </button>
 
     </div>
+  </div>
+)}
+
+{/* PAYMENT APPROVED - CARD REGISTER */}
+{step === "payment_approved" && paymentMode === "card_register" && (
+  <div className="min-h-[65vh] flex flex-col justify-center items-center p-10 text-center bg-white">
+
+    {/* SUCCESS ICON */}
+    <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+      <CheckCircle2
+        size={42}
+        className="text-green-500"
+      />
+    </div>
+
+    {/* TITLE */}
+    <h2 className="text-5xl font-black mt-8 leading-tight">
+      Card Successfully
+      <br />
+      Registered
+    </h2>
+
+    <p className="text-slate-500 mt-5 text-xl font-bold max-w-lg">
+      This payment method may be used for incidentals,
+      purchases, or authorized charges during the visit.
+    </p>
+
+    {/* CARD BOX */}
+    <div className="mt-12 bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 w-full max-w-xl">
+
+      <p className="text-slate-400 uppercase tracking-[0.3em] text-xs font-black">
+        REGISTERED CARD
+      </p>
+
+      <div className="mt-6 flex items-center justify-between">
+
+        <div className="text-left">
+          <p className="text-3xl font-black">
+            VISA •••• 4242
+          </p>
+
+          <p className="text-slate-500 font-bold mt-2">
+            Exp. 08/29
+          </p>
+        </div>
+
+        <CreditCard
+          size={40}
+          className="text-blue-600"
+        />
+      </div>
+
+    </div>
+
+    {/* QUESTION */}
+    <p className="mt-10 text-2xl font-black text-slate-900">
+      Use this card for Guest {currentGuestIndex + 1}?
+    </p>
+
+    {/* ACTIONS */}
+    <div className="mt-10 w-full max-w-xl space-y-4">
+
+      {/* YES */}
+      <button
+        onClick={() => {
+
+          const newGuest = {
+            id: currentGuestIndex + 1,
+            name: `${firstName} ${lastName}`,
+            birthDate,
+            locker: `A10${currentGuestIndex + 1}`,
+          };
+
+          setGuests((prev) => [...prev, newGuest]);
+
+          setStep("guest_complete");
+        }}
+        className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-xl"
+      >
+        Yes, Use This Card
+      </button>
+
+      {/* REGISTER ANOTHER */}
+      <button
+        onClick={() => {
+          setPaymentMode("card_register");
+          setStep("payment");
+        }}
+        className="w-full bg-slate-100 text-slate-900 py-6 rounded-2xl font-black text-xl"
+      >
+        Register Different Card
+      </button>
+
+    </div>
+
   </div>
 )}
 
@@ -850,7 +1008,31 @@ const handleBack = () => {
       Guest {currentGuestIndex + 1} of {guestCount}
     </p>
 
-    {/* CAMERA */}
+    {/* PRIVACY NOTICE */}
+<div className="mt-8 max-w-xl bg-white/10 border border-white/10 rounded-[2rem] p-6 backdrop-blur-sm">
+  
+  <p className="text-sm font-black uppercase tracking-[0.25em] text-blue-300">
+    Privacy Notice
+  </p>
+
+  <p className="mt-4 text-white/80 leading-relaxed text-lg">
+    Your face scan is converted into a secure biometric template
+    used only for guest verification during your visit.
+    No facial image is stored or shared.
+  </p>
+
+  <button
+    onClick={() => setFaceConsent(true)}
+    className="mt-5 text-blue-300 font-black uppercase tracking-[0.2em] text-sm"
+  >
+    Accept & Continue
+  </button>
+
+</div>
+
+{/* CAMERA */}
+{faceConsent && (
+  <>
     <div className="relative w-80 h-96 mt-10 rounded-[2rem] overflow-hidden bg-slate-900">
       <video
         ref={videoRef}
@@ -869,7 +1051,6 @@ const handleBack = () => {
     {/* SIMULATE BUTTON */}
     <button
       onClick={() => {
-        // 카메라 종료
         if (stream) {
           stream.getTracks().forEach((t) => t.stop());
         }
@@ -880,6 +1061,8 @@ const handleBack = () => {
     >
       Simulate Capture
     </button>
+  </>
+)}
   </div>
 )}
 
@@ -971,54 +1154,83 @@ const handleBack = () => {
       </p>
     </div>
 
-    {/* INFO CARD */}
-    <div className="mt-12 bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100">
+{/* INFO CARD */}
+<div className="mt-12 bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100">
 
-      <div className="space-y-8">
+  <div className="space-y-8">
 
-        {/* NAME */}
-        <div>
-          <p className="text-slate-400 uppercase tracking-[0.25em] text-xs font-black">
-            FULL NAME
-          </p>
+    {/* FIRST NAME */}
+    <div>
+      <p className="text-slate-400 uppercase tracking-[0.25em] text-xs font-black">
+        FIRST NAME
+      </p>
 
-          <p className="text-3xl font-black mt-3">
-            {firstName} {lastName}
-          </p>
-        </div>
+      <p className="text-3xl font-black mt-3">
+        {firstName}
+      </p>
+    </div>
 
-        {/* DOB */}
-        <div>
-          <p className="text-slate-400 uppercase tracking-[0.25em] text-xs font-black">
-            DATE OF BIRTH
-          </p>
+    {/* LAST NAME */}
+    <div>
+      <p className="text-slate-400 uppercase tracking-[0.25em] text-xs font-black">
+        LAST NAME
+      </p>
 
-          <p className="text-3xl font-black mt-3">
-            {birthDate}
-          </p>
-        </div>
+      <p className="text-3xl font-black mt-3">
+        {lastName}
+      </p>
+    </div>
 
-        {/* STATUS */}
-        <div className="bg-green-50 rounded-2xl p-5 flex items-center justify-between">
-          <div>
-            <p className="font-black text-green-700">
-              Identity Verified
-            </p>
+    {/* DATE OF BIRTH */}
+    <div>
+      <p className="text-slate-400 uppercase tracking-[0.25em] text-xs font-black">
+        DATE OF BIRTH
+      </p>
 
-            <p className="text-green-600 mt-1 font-medium">
-              Driver's license successfully scanned
-            </p>
-          </div>
+      <p className="text-3xl font-black mt-3">
+        {birthDate
+          ? new Date(birthDate).toLocaleDateString("en-US", {
+              month: "2-digit",
+              day: "2-digit",
+              year: "numeric",
+            })
+          : "--"}
+      </p>
+    </div>
 
-          <CheckCircle2
-            className="text-green-500"
-            size={40}
-          />
-        </div>
+    {/* GENDER */}
+    <div>
+      <p className="text-slate-400 uppercase tracking-[0.25em] text-xs font-black">
+        GENDER
+      </p>
 
+      <p className="text-3xl font-black mt-3">
+        Male
+      </p>
+    </div>
+
+    {/* LICENSE STATUS */}
+    <div className="bg-green-50 rounded-2xl p-5 flex items-center justify-between">
+      
+      <div>
+        <p className="font-black text-green-700">
+          Identity Verified
+        </p>
+
+        <p className="text-green-600 mt-1 font-medium">
+          Driver's license successfully scanned
+        </p>
       </div>
 
+      <CheckCircle2
+        className="text-green-500"
+        size={40}
+      />
     </div>
+
+  </div>
+
+</div>
 
     {/* BUTTONS */}
     <div className="mt-auto pt-10 space-y-4">
@@ -1057,39 +1269,66 @@ const handleBack = () => {
       Enter your mobile number to receive verification code
     </p>
 
-    {/* INPUT */}
+    {/* INPUTS */}
     <div className="mt-12 space-y-5">
+
+      {/* PHONE */}
       <input
         type="tel"
         placeholder="Phone Number"
         className="w-full bg-slate-50 p-6 rounded-2xl font-black text-xl outline-none"
       />
 
-      <input
-        type="text"
-        placeholder="Enter Verification Code"
-        className="w-full bg-slate-50 p-6 rounded-2xl font-black text-xl outline-none"
-      />
+      {/* CODE INPUT */}
+      {showVerificationInput && (
+        <input
+          type="text"
+          placeholder="Enter Verification Code"
+          className="w-full bg-slate-50 p-6 rounded-2xl font-black text-xl outline-none"
+        />
+      )}
+
     </div>
 
-    {/* INFO BOX */}
-    <div className="mt-10 bg-blue-50 rounded-[2rem] p-6">
-      <p className="text-blue-600 font-black uppercase tracking-[0.2em] text-xs">
-        SMS SENT
-      </p>
+    {/* SMS INFO */}
+    {showVerificationInput && (
+      <div className="mt-10 bg-blue-50 rounded-[2rem] p-6">
+        
+        <p className="text-blue-600 font-black uppercase tracking-[0.2em] text-xs">
+          SMS SENT
+        </p>
 
-      <p className="text-slate-700 mt-2 font-bold">
-        A 6-digit verification code has been sent to your phone
-      </p>
+        <p className="text-slate-700 mt-2 font-bold">
+          A 6-digit verification code has been sent to your phone
+        </p>
+
+      </div>
+    )}
+
+    {/* BUTTON AREA */}
+    <div className="mt-auto pt-10">
+
+      {!showVerificationInput ? (
+
+        <button
+          onClick={() => setShowVerificationInput(true)}
+          className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-xl"
+        >
+          Send Code
+        </button>
+
+      ) : (
+
+        <button
+          onClick={() => setStep("waiver")}
+          className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-xl"
+        >
+          Verify & Continue
+        </button>
+
+      )}
+
     </div>
-
-    {/* BUTTON */}
-    <button
-      onClick={() => setStep("waiver")}
-      className="mt-auto bg-blue-600 text-white py-6 rounded-2xl font-black text-xl"
-    >
-      Verify & Continue
-    </button>
 
   </div>
 )}
@@ -1133,7 +1372,19 @@ const handleBack = () => {
 
     {/* BUTTON */}
     <button
-      onClick={() => setStep("card_register")}
+      onClick={() => {
+          // voucher는 optional card setup
+          if (flowType === "voucher") {
+
+            setPaymentMode("card_register");
+            setStep("payment");
+
+            return;
+          }
+
+          // normal flow
+          setStep("card_register");
+      }}
       className="mt-auto bg-blue-600 text-white py-6 rounded-2xl font-black text-xl disabled:opacity-40"
     >
       Accept & Continue
@@ -1154,63 +1405,111 @@ const handleBack = () => {
       Guest {currentGuestIndex + 1} of {guestCount}
     </p>
 
-    <p className="text-slate-500 mt-3 font-bold">
-      Use the same card used for Day Pass?
-    </p>
+    {/* FIRST GUEST */}
+    {currentGuestIndex === 0 ? (
+      <>
 
-    <div className="mt-10 bg-slate-50 rounded-[2rem] p-8 border border-slate-100">
-      <p className="text-slate-400 uppercase tracking-[0.3em] text-xs font-black">
-        CARD ON FILE
-      </p>
+        <p className="text-slate-500 mt-3 font-bold">
+          Use the same card used for Day Pass?
+        </p>
 
-      <div className="mt-6 flex items-center justify-between">
-        <span className="text-xl font-black text-slate-900">
-          VISA •••• 4242
-        </span>
+        {/* SAVED CARD */}
+        <div className="mt-10 bg-slate-50 rounded-[2rem] p-8 border border-slate-100">
 
-        <CreditCard className="text-blue-600" />
-      </div>
+          <p className="text-slate-400 uppercase tracking-[0.3em] text-xs font-black">
+            CARD ON FILE
+          </p>
 
-      <p className="text-slate-500 mt-5 font-medium leading-relaxed">
-        This card may be used for incidentals or future authorized charges.
-      </p>
-    </div>
+          <div className="mt-6 flex items-center justify-between">
+            <span className="text-xl font-black text-slate-900">
+              VISA •••• 4242
+            </span>
 
-    <div className="mt-12 space-y-5">
+            <CreditCard className="text-blue-600" />
+          </div>
 
-      {/* USE SAME CARD */}
-    <button
-      onClick={() => {
+          <p className="text-slate-500 mt-5 font-medium leading-relaxed">
+            This card may be used for incidentals or future authorized charges.
+          </p>
 
-        // 현재 guest 저장
-        if (!isMembershipFlow) {
+        </div>
 
-          const newGuest = {
-            id: currentGuestIndex + 1,
-            name: `${firstName} ${lastName}`,
-            birthDate: birthDate,
-            locker: `A10${currentGuestIndex + 1}`,
-          };
+        {/* BUTTONS */}
+        <div className="mt-12 space-y-5">
 
-          setGuests((prev) => [...prev, newGuest]);
-        }
+          {/* USE SAME CARD */}
+          <button
+            onClick={() => {
 
-        setStep("guest_complete");
-      }}
-      className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-xl"
-    >
-      Use This Card
-    </button>
+              if (!isMembershipFlow) {
 
-      {/* DIFFERENT CARD */}
-      <button
-        onClick={() => setStep("choose_card")}
-        className="w-full bg-slate-100 text-slate-900 py-6 rounded-2xl font-black text-xl"
-      >
-        Register Different Card
-      </button>
+                const newGuest = {
+                  id: currentGuestIndex + 1,
+                  name: `${firstName} ${lastName}`,
+                  birthDate: birthDate,
+                  locker: `A10${currentGuestIndex + 1}`,
+                };
 
-    </div>
+                setGuests((prev) => [...prev, newGuest]);
+              }
+
+              setStep("guest_complete");
+            }}
+            className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-xl"
+          >
+            Use This Card
+          </button>
+
+          {/* DIFFERENT CARD */}
+          <button
+            onClick={() => {
+              setPaymentMode("card_register");
+              setStep("payment");
+            }}
+            className="w-full bg-slate-100 text-slate-900 py-6 rounded-2xl font-black text-xl"
+          >
+            Register Different Card
+          </button>
+
+        </div>
+
+      </>
+    ) : (
+      <>
+        {/* OTHER GUESTS */}
+        <div className="mt-12 bg-blue-50 rounded-[2.5rem] p-8 border border-blue-100">
+
+          <p className="text-blue-600 uppercase tracking-[0.3em] text-xs font-black">
+            PAYMENT METHOD REQUIRED
+          </p>
+
+          <h3 className="text-3xl font-black mt-5 leading-tight">
+            Register a payment card
+            <br />
+            for this guest
+          </h3>
+
+          <p className="text-slate-600 mt-5 font-bold leading-relaxed">
+            This card may be used for incidentals, purchases,
+            or authorized charges during the visit.
+          </p>
+
+        </div>
+
+        {/* BUTTON */}
+        <button
+          onClick={() => {
+            setPaymentMode("card_register");
+            setStep("payment")}
+          }
+            
+          className="mt-auto bg-blue-600 text-white py-7 rounded-[2rem] text-2xl font-black"
+        >
+          Continue to Card Registration
+        </button>
+
+      </>
+    )}
 
   </div>
 )}
@@ -1219,40 +1518,153 @@ const handleBack = () => {
 {step === "guest_complete" && (
   <div className="min-h-[65vh] flex flex-col items-center justify-center bg-white p-10 text-center">
 
+    {/* SUCCESS ICON */}
     <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
-      <CheckCircle2 className="text-green-500" size={50} />
+      <CheckCircle2
+        className="text-green-500"
+        size={50}
+      />
     </div>
 
-    <h2 className="text-5xl font-black mt-10">
-      Guest {currentGuestIndex + 1} Complete
+    {/* TITLE */}
+    <h2 className="text-5xl font-black mt-10 leading-tight">
+      Guest Pass
+      <br />
+      Ready
     </h2>
 
     <p className="text-slate-500 mt-4 text-xl font-bold">
-      Payment & Registration Completed
+      Guest {currentGuestIndex + 1} Successfully Registered
     </p>
 
-    <button
-      onClick={() => {
+    {/* QR PASS CARD */}
+    <div className="mt-12 w-full max-w-xl bg-slate-50 border border-slate-100 rounded-[2.5rem] p-8">
 
-          // 입력값 초기화
+      {/* TOP */}
+      <div className="flex items-start justify-between">
+
+        <div className="text-left">
+          <p className="text-slate-400 uppercase tracking-[0.25em] text-xs font-black">
+            DIGITAL ACCESS PASS
+          </p>
+
+          <h3 className="text-3xl font-black mt-4">
+            {firstName} {lastName}
+          </h3>
+
+          <p className="text-slate-500 font-bold mt-2">
+            Locker • A10{currentGuestIndex + 1}
+          </p>
+        </div>
+
+        <div className="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm font-black uppercase tracking-[0.15em]">
+          Active
+        </div>
+
+      </div>
+
+      {/* QR */}
+      <div className="mt-10 flex justify-center">
+
+        <div className="w-64 h-64 rounded-[2rem] bg-white border border-slate-200 flex items-center justify-center shadow-inner">
+          <QrCode
+            size={180}
+            className="text-slate-900"
+          />
+        </div>
+
+      </div>
+
+      {/* PASS INFO */}
+      <div className="mt-10 grid grid-cols-2 gap-4">
+
+        <div className="bg-white rounded-2xl p-5 text-left border border-slate-100">
+          <p className="text-slate-400 uppercase text-xs tracking-[0.2em] font-black">
+            Access
+          </p>
+
+          <p className="text-xl font-black mt-2">
+            Day Pass
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 text-left border border-slate-100">
+          <p className="text-slate-400 uppercase text-xs tracking-[0.2em] font-black">
+            Duration
+          </p>
+
+          <p className="text-xl font-black mt-2">
+            4 Hours
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+    {/* ACTION BUTTONS */}
+    <div className="mt-10 w-full max-w-xl space-y-4">
+
+      {/* REPRINT */}
+      <button
+        onClick={() => {
+          alert("Reprinting Guest Pass...");
+        }}
+        className="w-full bg-slate-100 text-slate-900 py-5 rounded-2xl font-black text-xl"
+      >
+        Reprint Pass
+      </button>
+
+      {/* NEXT / COMPLETE */}
+      <button
+        onClick={() => {
+
+          // guest info
           setFirstName("");
           setLastName("");
           setBirthDate("");
 
+          // face
+          setFaceConsent(false);
+          setCapturedImage(null);
 
-        if (currentGuestIndex + 1 < guestCount) {
-          setCurrentGuestIndex(prev => prev + 1);
-          setStep("face_capture");   // 다음 guest
-        } else {
-          setStep("register_summary"); // 마지막이면 summary
-        }
-      }}
-      className="mt-12 bg-blue-600 text-white px-10 py-6 rounded-2xl font-black text-xl"
-    >
-      {currentGuestIndex + 1 < guestCount
-        ? "Next Guest Registration"
-        : "View Summary"}
-    </button>
+          // verification
+          setShowVerificationInput(false);
+
+          // payment
+          setPaymentMode(null);
+
+          // member
+          setMemberData(null);
+
+          // stream cleanup
+          if (stream) {
+            stream.getTracks().forEach((t) => t.stop());
+          }
+
+          // NEXT GUEST
+          if (currentGuestIndex + 1 < guestCount) {
+
+            setCurrentGuestIndex(prev => prev + 1);
+
+            setStep("face_capture");
+
+          } else {
+
+            // 전체 완료 후 홈으로 초기화
+            resetAppState("idle");
+
+          }
+
+        }}
+        className="w-full bg-blue-600 text-white py-6 rounded-2xl font-black text-xl"
+      >
+        {currentGuestIndex + 1 < guestCount
+          ? "Next Guest"
+          : "Complete Check-in"}
+      </button>
+
+    </div>
 
   </div>
 )}
